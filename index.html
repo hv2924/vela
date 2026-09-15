@@ -1,0 +1,3065 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vela — A Modern Programming Language</title>
+  <meta name="description"
+    content="Vela is a modern, open-source programming language. Official documentation for v0.0.1.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800;900&display=swap">
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --bg-elev: #111111;
+      --bg-elev-2: #161616;
+      --text: #ffffff;
+      --text-soft: #dadada;
+      --text-mute: rgba(255, 255, 255, 0.55);
+      --text-dim: rgba(255, 255, 255, 0.35);
+      --accent: rgba(200, 170, 130, 1);
+      --accent-soft: rgba(200, 170, 130, 0.25);
+      --accent-dim: rgba(200, 170, 130, 0.12);
+      --line: rgba(255, 255, 255, 0.10);
+      --line-soft: rgba(255, 255, 255, 0.06);
+      --ease-quiet: cubic-bezier(.22, 1, .36, 1);
+      --ease-precise: cubic-bezier(.4, 0, .2, 1);
+      --ease-emphasis: cubic-bezier(.16, 1, .3, 1);
+      --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+      --sans: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 88px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text-soft);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+      overflow-x: hidden;
+    }
+
+    ::selection {
+      background: var(--accent-soft);
+      color: var(--text);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: inherit;
+    }
+
+    /* ───────── top navigation ───────── */
+    .topnav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      background: rgba(10, 10, 10, 0.82);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--line-soft);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      padding: 0 2rem;
+    }
+
+    .nav-inner {
+      width: 100%;
+      max-width: 1600px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 2rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      font-family: var(--mono);
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.05em;
+      color: var(--text);
+    }
+
+    .brand-mark {
+      width: 18px;
+      height: 18px;
+      border: 1.5px solid var(--accent);
+      transform: rotate(45deg);
+      position: relative;
+    }
+
+    .brand-mark::after {
+      content: '';
+      position: absolute;
+      inset: 3px;
+      background: var(--accent);
+      opacity: 0.6;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      font-size: 0.875rem;
+    }
+
+    .nav-links a {
+      color: var(--text-mute);
+      transition: color 240ms var(--ease-precise);
+      position: relative;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .nav-links a.active {
+      color: var(--accent);
+    }
+
+    .nav-cta {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .version-badge {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      padding: 0.35rem 0.7rem;
+      border: 1px solid var(--line);
+      color: var(--text-mute);
+      border-radius: 2px;
+    }
+
+    .github-link {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      color: var(--text-mute);
+      transition: color 240ms var(--ease-precise);
+    }
+
+    .github-link:hover {
+      color: var(--text);
+    }
+
+    .menu-toggle {
+      display: none;
+      width: 32px;
+      height: 32px;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .menu-toggle span {
+      display: block;
+      width: 20px;
+      height: 1.5px;
+      background: var(--text);
+      transition: transform 240ms var(--ease-precise);
+    }
+
+    /* ───────── hero ───────── */
+    .hero {
+      padding: 11rem 2rem 6rem;
+      border-bottom: 1px solid var(--line-soft);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--line-soft) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+      background-size: 80px 80px;
+      background-position: -1px -1px;
+      mask-image: radial-gradient(ellipse at 30% 40%, rgba(0, 0, 0, 0.9) 0%, transparent 60%);
+      -webkit-mask-image: radial-gradient(ellipse at 30% 40%, rgba(0, 0, 0, 0.9) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .hero-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 5rem;
+      align-items: center;
+      position: relative;
+    }
+
+    .eyebrow {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--accent);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.85rem;
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 600ms var(--ease-quiet), transform 600ms var(--ease-quiet);
+    }
+
+    .eyebrow.is-in {
+      opacity: 1;
+      transform: none;
+    }
+
+    .eyebrow::after {
+      content: '';
+      display: inline-block;
+      width: 0;
+      height: 1px;
+      background: currentColor;
+      transition: width 800ms var(--ease-quiet) 400ms;
+    }
+
+    .eyebrow.is-in::after {
+      width: 2.5rem;
+    }
+
+    .hero h1 {
+      font-family: var(--mono);
+      font-weight: 700;
+      font-size: clamp(4rem, 9vw, 7.5rem);
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+      color: var(--text);
+      margin: 1.5rem 0 1.75rem;
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 1200ms var(--ease-quiet) 100ms, transform 1200ms var(--ease-quiet) 100ms;
+    }
+
+    .hero h1.is-in {
+      opacity: 1;
+      transform: none;
+    }
+
+    .hero-tagline {
+      font-size: 1.25rem;
+      line-height: 1.55;
+      color: var(--text-mute);
+      max-width: 28rem;
+      margin-bottom: 2.5rem;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 800ms var(--ease-quiet) 300ms, transform 800ms var(--ease-quiet) 300ms;
+    }
+
+    .hero-tagline.is-in {
+      opacity: 1;
+      transform: none;
+    }
+
+    .hero-tagline em {
+      color: var(--text);
+      font-style: normal;
+      font-weight: 500;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 3rem;
+      flex-wrap: wrap;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 800ms var(--ease-quiet) 500ms, transform 800ms var(--ease-quiet) 500ms;
+    }
+
+    .hero-actions.is-in {
+      opacity: 1;
+      transform: none;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.85rem 1.5rem;
+      font-family: var(--mono);
+      font-size: 0.875rem;
+      letter-spacing: 0.04em;
+      border-radius: 2px;
+      transition: all 240ms var(--ease-precise);
+      border: 1px solid transparent;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg);
+      font-weight: 500;
+    }
+
+    .btn-primary:hover {
+      background: rgba(220, 190, 150, 1);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      border-color: var(--line);
+      color: var(--text);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn .arrow {
+      transition: transform 240ms var(--ease-precise);
+    }
+
+    .btn:hover .arrow {
+      transform: translateX(3px);
+    }
+
+    .hero-features {
+      display: flex;
+      gap: 2rem;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--text-mute);
+      letter-spacing: 0.04em;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 800ms var(--ease-quiet) 700ms, transform 800ms var(--ease-quiet) 700ms;
+    }
+
+    .hero-features.is-in {
+      opacity: 1;
+      transform: none;
+    }
+
+    .hero-features span {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .hero-features span::before {
+      content: '';
+      width: 4px;
+      height: 4px;
+      background: var(--accent);
+      border-radius: 50%;
+    }
+
+    /* code window */
+    .code-window {
+      background: var(--bg-elev);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--line-soft);
+      opacity: 0;
+      transform: translateY(40px) scale(0.98);
+      transition: opacity 1200ms var(--ease-quiet) 400ms, transform 1200ms var(--ease-quiet) 400ms;
+    }
+
+    .code-window.is-in {
+      opacity: 1;
+      transform: none;
+    }
+
+    .code-window-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--line-soft);
+      background: rgba(255, 255, 255, 0.015);
+    }
+
+    .code-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--line);
+    }
+
+    .code-window-title {
+      margin-left: 0.75rem;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--text-mute);
+      letter-spacing: 0.04em;
+    }
+
+    .code-window pre {
+      padding: 1.5rem 1.75rem;
+      font-family: var(--mono);
+      font-size: 0.875rem;
+      line-height: 1.75;
+      color: var(--text-soft);
+      overflow-x: auto;
+    }
+
+    .code-window pre .ln {
+      display: inline-block;
+      width: 2rem;
+      color: var(--text-dim);
+      user-select: none;
+    }
+
+    .tok-kw {
+      color: var(--accent);
+    }
+
+    .tok-str {
+      color: #c8b6a0;
+    }
+
+    .tok-com {
+      color: var(--text-dim);
+      font-style: italic;
+    }
+
+    .tok-fn {
+      color: var(--text);
+    }
+
+    .tok-num {
+      color: var(--accent);
+    }
+
+    .tok-type {
+      color: #b0a890;
+    }
+
+    /* ───────── layout ───────── */
+    .layout {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 4rem;
+      position: relative;
+    }
+
+    /* sidebar */
+    .sidebar {
+      position: sticky;
+      top: 64px;
+      height: calc(100vh - 64px);
+      overflow-y: auto;
+      padding: 3rem 0 2rem;
+      border-right: 1px solid var(--line-soft);
+    }
+
+    .sidebar::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .sidebar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+      background: var(--line);
+      border-radius: 2px;
+    }
+
+    .sidebar-group {
+      margin-bottom: 2rem;
+    }
+
+    .sidebar-heading {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 0.85rem;
+      padding-left: 1rem;
+    }
+
+    .sidebar-link {
+      display: block;
+      padding: 0.4rem 1rem;
+      font-size: 0.875rem;
+      color: var(--text-mute);
+      border-left: 2px solid transparent;
+      transition: all 200ms var(--ease-precise);
+      position: relative;
+      line-height: 1.4;
+    }
+
+    .sidebar-link:hover {
+      color: var(--text);
+      border-left-color: var(--line);
+    }
+
+    .sidebar-link.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: var(--accent-dim);
+    }
+
+    /* content */
+    .content {
+      padding: 3rem 0 8rem;
+      max-width: 820px;
+    }
+
+    .section {
+      padding-bottom: 5rem;
+      margin-bottom: 5rem;
+      border-bottom: 1px solid var(--line-soft);
+    }
+
+    .section:last-child {
+      border-bottom: none;
+    }
+
+    .section-header {
+      margin-bottom: 2.5rem;
+    }
+
+    .section-eyebrow {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--accent);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.85rem;
+      margin-bottom: 1.25rem;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 600ms var(--ease-quiet), transform 600ms var(--ease-quiet);
+    }
+
+    .section.is-in .section-eyebrow {
+      opacity: 1;
+      transform: none;
+    }
+
+    .section-eyebrow::after {
+      content: '';
+      display: inline-block;
+      width: 0;
+      height: 1px;
+      background: currentColor;
+      transition: width 800ms var(--ease-quiet) 400ms;
+    }
+
+    .section.is-in .section-eyebrow::after {
+      width: 2rem;
+    }
+
+    .section h2 {
+      font-family: var(--sans);
+      font-size: clamp(2rem, 3.5vw, 2.75rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 1rem;
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 900ms var(--ease-quiet) 100ms, transform 900ms var(--ease-quiet) 100ms;
+    }
+
+    .section.is-in h2 {
+      opacity: 1;
+      transform: none;
+    }
+
+    .section-lead {
+      font-size: 1.125rem;
+      line-height: 1.65;
+      color: var(--text-mute);
+      max-width: 38rem;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 800ms var(--ease-quiet) 250ms, transform 800ms var(--ease-quiet) 250ms;
+    }
+
+    .section.is-in .section-lead {
+      opacity: 1;
+      transform: none;
+    }
+
+    .section-meta {
+      display: flex;
+      gap: 1.5rem;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+      margin-top: 1.5rem;
+      text-transform: uppercase;
+    }
+
+    h3 {
+      font-family: var(--sans);
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
+      margin: 3rem 0 1rem;
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 700ms var(--ease-quiet), transform 700ms var(--ease-quiet);
+    }
+
+    .section.is-in h3 {
+      opacity: 1;
+      transform: none;
+    }
+
+    h3 .anchor {
+      color: var(--accent);
+      margin-right: 0.5rem;
+      font-family: var(--mono);
+      font-weight: 400;
+    }
+
+    p {
+      margin-bottom: 1.25rem;
+    }
+
+    p:last-child {
+      margin-bottom: 0;
+    }
+
+    .prose {
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 700ms var(--ease-quiet) 100ms, transform 700ms var(--ease-quiet) 100ms;
+    }
+
+    .section.is-in .prose {
+      opacity: 1;
+      transform: none;
+    }
+
+    .prose strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .prose code {
+      font-family: var(--mono);
+      font-size: 0.85em;
+      background: var(--bg-elev);
+      padding: 0.15em 0.4em;
+      border-radius: 3px;
+      border: 1px solid var(--line-soft);
+      color: var(--accent);
+    }
+
+    ul.list,
+    ol.list {
+      margin: 0 0 1.5rem 0;
+      padding-left: 0;
+      list-style: none;
+    }
+
+    ul.list li,
+    ol.list li {
+      position: relative;
+      padding-left: 1.5rem;
+      margin-bottom: 0.65rem;
+    }
+
+    ul.list li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.7em;
+      width: 6px;
+      height: 1px;
+      background: var(--accent);
+    }
+
+    ol.list {
+      counter-reset: olc;
+    }
+
+    ol.list li {
+      counter-increment: olc;
+    }
+
+    ol.list li::before {
+      content: counter(olc, decimal-leading-zero);
+      position: absolute;
+      left: 0;
+      top: 0;
+      font-family: var(--mono);
+      font-size: 0.8em;
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* code blocks */
+    .code-block {
+      background: var(--bg-elev);
+      border: 1px solid var(--line-soft);
+      border-radius: 4px;
+      margin: 1.5rem 0 2rem;
+      overflow: hidden;
+      position: relative;
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 700ms var(--ease-quiet), transform 700ms var(--ease-quiet), border-color 240ms var(--ease-precise);
+    }
+
+    .section.is-in .code-block {
+      opacity: 1;
+      transform: none;
+    }
+
+    .code-block:hover {
+      border-color: var(--line);
+    }
+
+    .code-block-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--line-soft);
+      background: rgba(255, 255, 255, 0.015);
+    }
+
+    .code-block-filename {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--text-mute);
+      letter-spacing: 0.04em;
+    }
+
+    .copy-btn {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      padding: 0.25rem 0.5rem;
+      border-radius: 2px;
+      transition: color 200ms var(--ease-precise);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .copy-btn:hover {
+      color: var(--accent);
+    }
+
+    .copy-btn.copied {
+      color: var(--accent);
+    }
+
+    .code-block pre {
+      padding: 1.25rem 1.5rem;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      line-height: 1.75;
+      color: var(--text-soft);
+      overflow-x: auto;
+    }
+
+    /* type cards */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin: 1.5rem 0 2rem;
+    }
+
+    .type-card {
+      background: var(--bg-elev);
+      border: 1px solid var(--line-soft);
+      border-radius: 4px;
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 280ms var(--ease-precise);
+      opacity: 0;
+      transform: translateY(16px);
+    }
+
+    .section.is-in .type-card {
+      opacity: 1;
+      transform: none;
+      transition: opacity 600ms var(--ease-quiet), transform 600ms var(--ease-quiet), border-color 280ms var(--ease-precise);
+    }
+
+    .type-card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 2px;
+      height: 0;
+      background: var(--accent);
+      transition: height 500ms var(--ease-quiet);
+    }
+
+    .type-card:hover::before {
+      height: 100%;
+    }
+
+    .type-card:hover {
+      border-color: var(--line);
+    }
+
+    .type-card-name {
+      font-family: var(--mono);
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 0.35rem;
+      display: flex;
+      align-items: baseline;
+      gap: 0.65rem;
+    }
+
+    .type-card-name .sig {
+      color: var(--accent);
+      font-size: 0.85rem;
+    }
+
+    .type-card-desc {
+      font-size: 0.9rem;
+      color: var(--text-mute);
+      line-height: 1.55;
+      margin-bottom: 0.85rem;
+    }
+
+    .type-card-code {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--text-soft);
+      background: rgba(0, 0, 0, 0.3);
+      padding: 0.6rem 0.75rem;
+      border-radius: 3px;
+      border-left: 2px solid var(--accent-soft);
+      line-height: 1.6;
+    }
+
+    /* feature rows */
+    .feature-rows {
+      margin: 1rem 0 2rem;
+    }
+
+    .feature-row {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 2rem;
+      padding: 1.75rem 0 1.75rem 1.5rem;
+      border-top: 1px solid var(--line-soft);
+      position: relative;
+      transition: padding-left 400ms var(--ease-quiet);
+    }
+
+    .feature-row:last-child {
+      border-bottom: 1px solid var(--line-soft);
+    }
+
+    .feature-row::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 2px;
+      height: 0;
+      background: var(--accent);
+      transition: height 500ms var(--ease-quiet);
+    }
+
+    .feature-row:hover::before {
+      height: 100%;
+    }
+
+    .feature-row:hover {
+      padding-left: 2rem;
+    }
+
+    .feature-row-num {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      padding-top: 0.15rem;
+    }
+
+    .feature-row h4 {
+      font-family: var(--sans);
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.35rem;
+      transition: color 300ms var(--ease-precise);
+    }
+
+    .feature-row:hover h4 {
+      color: var(--accent);
+    }
+
+    .feature-row p {
+      font-size: 0.92rem;
+      color: var(--text-mute);
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    /* callouts */
+    .callout {
+      background: var(--bg-elev);
+      border: 1px solid var(--line-soft);
+      border-left: 2px solid var(--accent);
+      padding: 1rem 1.25rem;
+      margin: 1.5rem 0 2rem;
+      border-radius: 0 4px 4px 0;
+      font-size: 0.92rem;
+      line-height: 1.6;
+    }
+
+    .callout-label {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.4rem;
+      display: block;
+    }
+
+    /* download */
+    .download-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+      margin: 2rem 0;
+    }
+
+    .download-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 1.5rem;
+      align-items: center;
+      padding: 1.25rem 1.5rem;
+      background: var(--bg-elev);
+      border: 1px solid var(--line-soft);
+      border-radius: 4px;
+      transition: border-color 280ms var(--ease-precise), transform 280ms var(--ease-precise);
+      opacity: 0;
+      transform: translateY(12px);
+    }
+
+    .section.is-in .download-row {
+      opacity: 1;
+      transform: none;
+      transition: opacity 500ms var(--ease-quiet), transform 500ms var(--ease-quiet), border-color 280ms var(--ease-precise);
+    }
+
+    .download-row:hover {
+      border-color: var(--accent-soft);
+    }
+
+    .download-platform {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .download-platform-name {
+      font-family: var(--sans);
+      font-weight: 600;
+      color: var(--text);
+      font-size: 1rem;
+    }
+
+    .download-platform-meta {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--text-mute);
+      letter-spacing: 0.04em;
+    }
+
+    .download-size {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      color: var(--text-mute);
+    }
+
+    .download-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      letter-spacing: 0.06em;
+      color: var(--accent);
+      padding: 0.5rem 0.85rem;
+      border: 1px solid var(--accent-soft);
+      border-radius: 2px;
+      transition: all 200ms var(--ease-precise);
+    }
+
+    .download-link:hover {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+    }
+
+    .checksum-block {
+      margin-top: 2rem;
+      padding: 1.25rem 1.5rem;
+      background: var(--bg-elev);
+      border: 1px solid var(--line-soft);
+      border-radius: 4px;
+    }
+
+    .checksum-title {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 0.85rem;
+    }
+
+    .checksum-line {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 1rem;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      padding: 0.4rem 0;
+      border-bottom: 1px solid var(--line-soft);
+      align-items: center;
+    }
+
+    .checksum-line:last-child {
+      border-bottom: none;
+    }
+
+    .checksum-file {
+      color: var(--text-mute);
+    }
+
+    .checksum-hash {
+      color: var(--accent);
+      word-break: break-all;
+    }
+
+    /* prev next */
+    .prev-next {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 4rem;
+      padding-top: 2.5rem;
+      border-top: 1px solid var(--line-soft);
+    }
+
+    .prev-next-item {
+      padding: 1rem 1.25rem;
+      border: 1px solid var(--line-soft);
+      border-radius: 4px;
+      transition: border-color 240ms var(--ease-precise);
+    }
+
+    .prev-next-item:hover {
+      border-color: var(--accent-soft);
+    }
+
+    .prev-next-label {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 0.4rem;
+    }
+
+    .prev-next-title {
+      color: var(--text);
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    .prev-next-item:nth-child(2) {
+      text-align: right;
+    }
+
+    /* footer */
+    .footer {
+      border-top: 1px solid var(--line-soft);
+      padding: 4rem 2rem 2.5rem;
+      background: var(--bg);
+    }
+
+    .footer-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1fr;
+      gap: 3rem;
+      margin-bottom: 3rem;
+    }
+
+    .footer-brand p {
+      font-size: 0.875rem;
+      color: var(--text-mute);
+      margin-top: 1rem;
+      max-width: 22rem;
+      line-height: 1.6;
+    }
+
+    .footer-col h5 {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 1rem;
+    }
+
+    .footer-col ul {
+      list-style: none;
+    }
+
+    .footer-col li {
+      margin-bottom: 0.6rem;
+    }
+
+    .footer-col a {
+      font-size: 0.875rem;
+      color: var(--text-mute);
+      transition: color 200ms var(--ease-precise);
+    }
+
+    .footer-col a:hover {
+      color: var(--accent);
+    }
+
+    .footer-bottom {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding-top: 2rem;
+      border-top: 1px solid var(--line-soft);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      letter-spacing: 0.04em;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    /* back to top */
+    .back-to-top {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      width: 44px;
+      height: 44px;
+      background: var(--bg-elev);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      color: var(--text-mute);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 300ms var(--ease-precise), color 200ms var(--ease-precise), border-color 200ms var(--ease-precise);
+      z-index: 50;
+    }
+
+    .back-to-top.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .back-to-top:hover {
+      color: var(--accent);
+      border-color: var(--accent-soft);
+    }
+
+    /* license block */
+    .license-block {
+      background: var(--bg-elev);
+      border: 1px solid var(--line-soft);
+      border-radius: 4px;
+      padding: 2rem;
+      margin: 1.5rem 0;
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      line-height: 1.75;
+      color: var(--text-mute);
+      max-height: 360px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    .license-block::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .license-block::-webkit-scrollbar-thumb {
+      background: var(--line);
+    }
+
+    /* responsive */
+    @media (max-width: 1024px) {
+      .layout {
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
+
+      .sidebar {
+        position: static;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--line-soft);
+        padding: 2rem 0;
+        display: none;
+      }
+
+      .sidebar.open {
+        display: block;
+      }
+
+      .menu-toggle {
+        display: flex;
+      }
+
+      .hero-inner {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+      }
+
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .footer-inner {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .topnav {
+        padding: 0 1.25rem;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .hero {
+        padding: 8rem 1.25rem 4rem;
+      }
+
+      .layout {
+        padding: 0 1.25rem;
+      }
+
+      .footer {
+        padding: 3rem 1.25rem 2rem;
+      }
+
+      .footer-inner {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+
+      .hero-features {
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .feature-row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+        padding-left: 1rem;
+      }
+
+      .download-row {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+      }
+
+      .download-link {
+        justify-self: start;
+      }
+
+      .prev-next {
+        grid-template-columns: 1fr;
+      }
+
+      .prev-next-item:nth-child(2) {
+        text-align: left;
+      }
+
+      .checksum-line {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+
+      html {
+        scroll-behavior: auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav class="topnav">
+    <div class="nav-inner">
+      <a href="#top" class="brand">
+        <span class="brand-mark"></span>
+        <span>VELA</span>
+      </a>
+      <div class="nav-links">
+        <a href="#introduction">Docs</a>
+        <a href="#examples">Examples</a>
+        <a href="#download">Download</a>
+        <a href="#license">License</a>
+      </div>
+      <div class="nav-cta">
+        <span class="version-badge">v0.0.1</span>
+        <a href="#" class="github-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.9 1.2 1.9 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.2.5-2.3 1.3-3.1-.2-.4-.6-1.6 0-3.2 0 0 1-.3 3.4 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.7 1.6.2 2.8.1 3.2.8.8 1.3 1.9 1.3 3.1 0 4.6-2.8 5.7-5.5 6 .5.4.9 1.1.9 2.3v3.3c0 .3.1.7.8.6A12 12 0 0 0 12 .3" />
+          </svg>
+          <span>GitHub</span>
+        </a>
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero" id="top">
+    <div class="hero-inner">
+      <div class="hero-left">
+        <div class="eyebrow" data-anim>Open Source · MIT Licensed</div>
+        <h1 data-anim>Vela</h1>
+        <p class="hero-tagline" data-anim>
+          A strongly typed programming language designed to make <em>intent explicit</em>, make <em>unsafe behavior
+            difficult</em>, and let the compiler turn expressive programs into efficient execution.
+        </p>
+        </p>
+        <div class="hero-actions" data-anim>
+          <a href="#introduction" class="btn btn-primary">
+            <span>Get Started</span>
+            <span class="arrow">→</span>
+          </a>
+          <a href="#download" class="btn btn-secondary">
+            <span>Download v0.0.1</span>
+          </a>
+        </div>
+        <div class="hero-features" data-anim>
+          <span>Strong typing</span>
+          <span>Domain-aware</span>
+          <span>Compiler-driven</span>
+        </div>
+      </div>
+      <div class="hero-right">
+        <div class="code-window" data-anim>
+          <div class="code-window-bar">
+            <span class="code-dot"></span>
+            <span class="code-dot"></span>
+            <span class="code-dot"></span>
+            <span class="code-window-title">hello.vela</span>
+          </div>
+          <pre><code><span class="ln">1</span><span class="tok-kw">fn</span> <span class="tok-fn">greet</span>(name : <span class="tok-type">text</span>) -&gt; <span class="tok-type">text</span> {
+            <span class="ln">2</span>    <span class="tok-kw">return</span> <span class="tok-str">"Hello, "</span> + name
+            <span class="ln">3</span>}
+            <span class="ln">4</span>
+            <span class="ln">5</span><span class="tok-kw">let</span> name : <span class="tok-type">text</span> = <span class="tok-fn">input</span>()
+            <span class="ln">6</span><span class="tok-fn">print</span>(<span class="tok-fn">greet</span>(name))
+            <span class="ln">7</span>
+            <span class="ln">8</span><span class="tok-com">// Input: Vela</span>
+            <span class="ln">9</span><span class="tok-com">// Output: Hello, Vela</span></code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="layout">
+
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-group">
+        <div class="sidebar-heading">Getting Started</div>
+        <a href="#introduction" class="sidebar-link">Introduction</a>
+        <a href="#installation" class="sidebar-link">Installation</a>
+        <a href="#hello-world" class="sidebar-link">Hello World</a>
+      </div>
+      <div class="sidebar-group">
+        <div class="sidebar-heading">Language</div>
+        <a href="#data-types" class="sidebar-link">Data Types</a>
+        <a href="#variables" class="sidebar-link">Variables &amp; Scope</a>
+        <a href="#functions" class="sidebar-link">Functions</a>
+        <a href="#control-flow" class="sidebar-link">Control Flow</a>
+      </div>
+      <div class="sidebar-group">
+        <div class="sidebar-heading">Libraries</div>
+        <a href="#algorithms" class="sidebar-link">Data Algorithms</a>
+        <a href="#stdlib" class="sidebar-link">Standard Library</a>
+      </div>
+      <div class="sidebar-group">
+        <div class="sidebar-heading">Resources</div>
+        <a href="#examples" class="sidebar-link">Examples</a>
+        <a href="#download" class="sidebar-link">Download</a>
+        <a href="#contributing" class="sidebar-link">Contributing</a>
+        <a href="#license" class="sidebar-link">License</a>
+      </div>
+    </aside>
+
+    <main class="content">
+
+      <!-- ──────── INTRODUCTION ──────── -->
+      <section class="section" id="introduction">
+        <div class="section-header">
+          <div class="section-eyebrow">01 — Getting Started</div>
+          <h2>Introduction</h2>
+          <p class="section-lead">
+            Vela is a strongly typed programming language built around a simple idea: the more meaning the compiler
+            understands, the more it can protect, validate, and optimize on the programmer's behalf.
+          </p>
+          <div class="section-meta">
+            <span>Release · 0.0.1</span>
+            <span>First public iteration</span>
+          </div>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>What is Vela?</h3>
+          <p>
+            Vela is a statically typed language that compiles Vela source through lexical analysis, parsing, semantic
+            analysis, and code generation into JavaScript backed by a focused runtime. Its type system is designed
+            around meaningful domain concepts as well as conventional programming types, allowing values such as
+            <code>money</code>, <code>secret</code>, <code>email</code>, and <code>uuid</code> to carry semantics that
+            the compiler can understand.
+          </p>
+          <p>
+            The language is designed to keep programs readable while making important mistakes difficult to express.
+            Collections, entities, permissions, first-class functions, typed input, exact decimal arithmetic, and
+            compiler-directed <code>weave()</code> pipelines all build on that same principle.
+          </p>
+
+          <h3><span class="anchor">§</span>Design Principles</h3>
+          <p>
+            Vela's design is guided by a small set of principles: make intent visible in the program, give the compiler
+            enough information to enforce meaningful guarantees, and keep high-level code readable even when the
+            generated execution is highly optimized.
+          </p>
+        </div>
+
+        <div class="feature-rows">
+          <div class="feature-row">
+            <div class="feature-row-num">01</div>
+            <div>
+              <h4>Readable by design</h4>
+              <p>Vela favors explicit, compact syntax that keeps the programmer's intent visible without requiring
+                unnecessary ceremony.</p>
+            </div>
+          </div>
+          <div class="feature-row">
+            <div class="feature-row-num">02</div>
+            <div>
+              <h4>Meaningful type safety</h4>
+              <p>Important concepts such as money, secrets, collections, entities, and permissions are understood by the
+                compiler instead of being reduced to generic values.</p>
+            </div>
+          </div>
+          <div class="feature-row">
+            <div class="feature-row-num">03</div>
+            <div>
+              <h4>Optimization through meaning</h4>
+              <p>Because Vela understands higher-level operations, the compiler can fuse compatible collection stages
+                and eliminate unnecessary intermediate work.</p>
+            </div>
+          </div>
+          <div class="feature-row">
+            <div class="feature-row-num">04</div>
+            <div>
+              <h4>Explicit over implicit</h4>
+              <p>Vela prefers important decisions to be visible in source code, from currency conversion to sensitive
+                input and collection transformations.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout">
+          <span class="callout-label">0.0.1</span>
+          Vela 0.0.1 is the first public iteration of the language. Start with the installation guide, run the first
+          example, then explore the type system and compiler-driven features.
+        </div>
+      </section>
+
+      <!-- ──────── INSTALLATION ──────── -->
+      <section class="section" id="installation">
+        <div class="section-header">
+          <div class="section-eyebrow">02 — Getting Started</div>
+          <h2>Installation</h2>
+          <p class="section-lead">
+            Vela 0.0.1 is distributed as an open-source compiler project. The current implementation runs on Node.js and
+            compiles Vela source into JavaScript, making the first release straightforward to build and experiment with
+            from source.
+          </p>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Prerequisites</h3>
+          <p>
+            The current 0.0.1 compiler requires Node.js, npm, and the project's TypeScript/JavaScript toolchain.
+          </p>
+          <ul class="list">
+            <li>Node.js</li>
+            <li>npm</li>
+            <li>Git for building from the source repository</li>
+          </ul>
+
+          <h3><span class="anchor">§</span>Build on macOS</h3>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">terminal</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-fn">git</span> clone &lt;repository-url&gt;
+<span class="tok-fn">cd</span> vela
+<span class="tok-fn">npm</span> install
+<span class="tok-fn">npm</span> run typecheck</code></pre>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Build on Linux</h3>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">terminal</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-fn">git</span> clone &lt;repository-url&gt;
+<span class="tok-fn">cd</span> vela
+<span class="tok-fn">npm</span> install
+<span class="tok-fn">npm</span> run typecheck</code></pre>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Build on Windows</h3>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">powershell</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-fn">git</span> clone &lt;repository-url&gt;
+<span class="tok-fn">cd</span> vela
+<span class="tok-fn">npm</span> install
+<span class="tok-fn">npm</span> run typecheck</code></pre>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Build from Source</h3>
+          <p>
+            Vela's current compiler is developed in TypeScript and executed with Node.js. Install the project
+            dependencies, verify the compiler, and compile a Vela source file with the commands below.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">terminal</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-fn">npm</span> install
+<span class="tok-fn">npm</span> run typecheck
+<span class="tok-fn">npm</span> run vela -- examples/hello.vela
+<span class="tok-fn">node</span> dist/hello.js</code></pre>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Verify the Compiler</h3>
+          <p>
+            A successful type check confirms that the compiler project is correctly installed. Compiling an example then
+            produces JavaScript in the <code>dist</code> directory.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">terminal</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-fn">npm</span> run typecheck
+<span class="tok-com"># TypeScript compilation succeeds</span>
+
+<span class="tok-fn">npm</span> run vela -- examples/hello.vela
+<span class="tok-com"># Compiled examples/hello.vela → dist/hello.js</span></code></pre>
+        </div>
+      </section>
+
+      <!-- ──────── HELLO WORLD ──────── -->
+      <section class="section" id="hello-world">
+        <div class="section-header">
+          <div class="section-eyebrow">03 — Getting Started</div>
+          <h2>Hello World</h2>
+          <p class="section-lead">
+            Start with a tiny Vela program, compile it to JavaScript, and run the generated program with Node.js. This
+            example introduces Vela's function syntax, typed values, and basic output.
+          </p>
+        </div>
+
+        <div class="prose">
+          <p>
+            A Vela program can begin with a simple function and a call to <code>print</code>. The example below keeps
+            everything visible: the function declaration, its return type, the input value, and the final output.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">hello.vela</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-kw">fn</span> <span class="tok-fn">greet</span>(name: <span class="tok-type">text</span>) -&gt; <span class="tok-type">text</span> {
+    <span class="tok-kw">return</span> <span class="tok-str">"Hello, "</span> + name
+}
+
+<span class="tok-kw">let</span> name: <span class="tok-type">text</span> = <span class="tok-str">"World"</span>
+<span class="tok-fn">print</span>(<span class="tok-fn">greet</span>(name))</code></pre>
+        </div>
+
+        <div class="prose">
+          <p>
+            The <code>greet</code> function accepts a <code>text</code> value and returns another <code>text</code>
+            value. The type annotation makes that contract explicit to the compiler. The <code>print</code> built-in
+            then writes the returned value to standard output.
+          </p>
+          <p>
+            Vela's current 0.0.1 workflow compiles the source file into JavaScript rather than executing the
+            <code>.vela</code> file directly. The generated JavaScript can then be run with Node.js.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">terminal</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-fn">npm</span> run vela -- examples/hello.vela
+<span class="tok-fn">node</span> dist/hello.js
+
+<span class="tok-com"># Hello, World!</span></code></pre>
+        </div>
+
+        <div class="callout">
+          <span class="callout-label">Next</span>
+          From here, explore Vela's type system, domain-aware values, collections, and first-class functions.
+        </div>
+      </section>
+
+      <!-- ──────── DATA TYPES ──────── -->
+      <section class="section" id="data-types">
+        <div class="section-header">
+          <div class="section-eyebrow">04 — Language</div>
+          <h2>Data Types</h2>
+          <p class="section-lead">
+            Vela is a statically typed language with explicit type annotations, type-aware expressions, and
+            domain-specific types built directly into the language and compiler.
+          </p>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Primitive Types</h3>
+          <p>
+            Vela's primitive types cover common values as well as concepts that benefit from stronger semantics. Types
+            are checked by the compiler rather than being treated as interchangeable runtime values.
+          </p>
+        </div>
+
+        <div class="grid-2">
+          <div class="type-card">
+            <div class="type-card-name">Text <span class="sig">[text]</span></div>
+            <div class="type-card-desc">Text values represented as strings in generated JavaScript.</div>
+            <div class="type-card-code"><span class="tok-kw">let</span> name: <span class="tok-type">text</span> = <span
+                class="tok-str">"Vela"</span></div>
+          </div>
+
+          <div class="type-card">
+            <div class="type-card-name">Integer <span class="sig">[int]</span></div>
+            <div class="type-card-desc">Whole-number values used throughout the language and collection APIs.</div>
+            <div class="type-card-code"><span class="tok-kw">let</span> count: <span class="tok-type">int</span> = 42
+            </div>
+          </div>
+
+          <div class="type-card">
+            <div class="type-card-name">Boolean <span class="sig">[bool]</span></div>
+            <div class="type-card-desc">Boolean values used for conditions, predicates, permissions, and logical
+              expressions.</div>
+            <div class="type-card-code"><span class="tok-kw">let</span> active: <span class="tok-type">bool</span> =
+              <span class="tok-kw">true</span>
+            </div>
+          </div>
+
+          <div class="type-card">
+            <div class="type-card-name">Decimal <span class="sig">[decimal]</span></div>
+            <div class="type-card-desc">Exact decimal values intended for calculations where ordinary binary
+              floating-point behavior is undesirable.</div>
+            <div class="type-card-code"><span class="tok-kw">let</span> rate: <span class="tok-type">decimal</span> =
+              <span class="tok-num">1.25</span>
+            </div>
+          </div>
+
+          <div class="type-card">
+            <div class="type-card-name">Email <span class="sig">[email]</span></div>
+            <div class="type-card-desc">A domain-aware email value with compiler-visible type information.</div>
+            <div class="type-card-code"><span class="tok-kw">let</span> address: <span class="tok-type">email</span> =
+              <span class="tok-str">"user@example.com"</span>
+            </div>
+          </div>
+
+          <div class="type-card">
+            <div class="type-card-name">UUID <span class="sig">[uuid]</span></div>
+            <div class="type-card-desc">A dedicated UUID type for identifiers that should remain distinct from ordinary
+              text.</div>
+            <div class="type-card-code"><span class="tok-kw">let</span> id: <span class="tok-type">uuid</span> = ...
+            </div>
+          </div>
+
+          <div class="type-card">
+            <div class="type-card-name">Secret <span class="sig">[secret]</span></div>
+            <div class="type-card-desc">A sensitive value intended to be handled differently from ordinary text,
+              including secure input.</div>
+            <div class="type-card-code"><span class="tok-kw">let</span> password: <span class="tok-type">secret</span> =
+              ...</div>
+          </div>
+
+          <div class="type-card">
+            <div class="type-card-name">Secret Hash <span class="sig">[secret_hash]</span></div>
+            <div class="type-card-desc">A hashed secret value produced by the language runtime's password-hashing
+              facilities.</div>
+            <div class="type-card-code"><span class="tok-kw">let</span> hash: <span class="tok-type">secret_hash</span>
+              = ...</div>
+          </div>
+
+          <div class="type-card">
+            <div class="type-card-name">Money <span class="sig">[money]</span></div>
+            <div class="type-card-desc">Currency-aware monetary values with exact minor-unit storage and currency-aware
+              arithmetic.</div>
+            <div class="type-card-code"><span class="tok-kw">let</span> price: <span class="tok-type">money</span> = ...
+            </div>
+          </div>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Entities</h3>
+          <p>
+            Entities are named domain types defined directly in Vela. Their fields have explicit types, allowing the
+            compiler to reason about relationships between values and domain objects.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">entities.vela</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-kw">entity</span> <span class="tok-fn">User</span> {
+    id: <span class="tok-type">int</span>
+}</code></pre>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Collection Types</h3>
+          <p>
+            Vela provides typed collections whose element, key, and value types are part of the type system. Collections
+            can also be nested, allowing structures such as <code>list[list[int]]</code>.
+          </p>
+        </div>
+
+        <div class="grid-2">
+          <div class="type-card">
+            <div class="type-card-name">List <span class="sig">list[T]</span></div>
+            <div class="type-card-desc">An ordered collection of values sharing a single element type.</div>
+            <div class="type-card-code"><span class="tok-kw">let</span> values: <span class="tok-type">list[int]</span>
+              = <span class="tok-fn">list</span>(1, 2, 3)</div>
+          </div>
+
+          <div class="type-card">
+            <div class="type-card-name">Set <span class="sig">set[T]</span></div>
+            <div class="type-card-desc">A collection of unique values with hash-based membership checks.</div>
+            <div class="type-card-code"><span class="tok-kw">let</span> values: <span class="tok-type">set[int]</span> =
+              <span class="tok-fn">set</span>(1, 2, 2, 3)
+            </div>
+          </div>
+
+          <div class="type-card">
+            <div class="type-card-name">Map <span class="sig">map[K,V]</span></div>
+            <div class="type-card-desc">A key-value collection with explicit key and value types.</div>
+            <div class="type-card-code"><span class="tok-kw">let</span> users: <span
+                class="tok-type">map[text,int]</span> = <span class="tok-fn">map</span>(<span
+                class="tok-str">"alice"</span>, 10)</div>
+          </div>
+
+          <div class="type-card">
+            <div class="type-card-name">Function <span class="sig">(T...) -&gt; R</span></div>
+            <div class="type-card-desc">A first-class function value with typed parameters and a typed return value.
+            </div>
+            <div class="type-card-code"><span class="tok-kw">let</span> op: (<span class="tok-type">int</span>) -&gt;
+              <span class="tok-type">int</span> = double
+            </div>
+          </div>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Type Inference</h3>
+          <p>
+            Type annotations can be written explicitly where they make intent clear, while expressions can also provide
+            enough information for the compiler to determine their type. Generic collection types remain explicit about
+            the types of the values they contain.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">inference.vela</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-kw">let</span> count = 42
+<span class="tok-kw">let</span> message: <span class="tok-type">text</span> = <span class="tok-str">"hello"</span>
+<span class="tok-kw">let</span> values: <span class="tok-type">list[int]</span> = <span class="tok-fn">list</span>(1, 2, 3)</code></pre>
+        </div>
+      </section>
+
+      <!-- ──────── VARIABLES ──────── -->
+      <section class="section" id="variables">
+        <div class="section-header">
+          <div class="section-eyebrow">05 — Language</div>
+          <h2>Variables &amp; Scope</h2>
+          <p class="section-lead">
+            Vela bindings are introduced with <code>let</code>. Types may be written explicitly when needed, while the
+            initializer can provide the information required for type analysis.
+          </p>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Declaration</h3>
+          <p>
+            A variable declaration uses <code>let</code>, followed by a name and, when desired, an explicit type
+            annotation. The initializer determines the value assigned to the binding.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">variables.vela</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-kw">let</span> count = 10
+<span class="tok-kw">let</span> name: <span class="tok-type">text</span> = <span class="tok-str">"Vela"</span>
+
+<span class="tok-kw">let</span> numbers: <span class="tok-type">list[int]</span> = <span class="tok-fn">list</span>(1, 2, 3)
+<span class="tok-kw">let</span> operation: (<span class="tok-type">int</span>) -&gt; <span class="tok-type">int</span> = double</code></pre>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Typed Bindings</h3>
+          <p>
+            Explicit annotations are particularly useful for domain types, generic collections, and first-class
+            functions. They communicate the intended type directly to both the reader and the compiler.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">typed-bindings.vela</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-kw">let</span> email: <span class="tok-type">email</span> = ...
+<span class="tok-kw">let</span> scores: <span class="tok-type">list[int]</span> = <span class="tok-fn">list</span>(10, 20, 30)
+<span class="tok-kw">let</span> lookup: <span class="tok-type">map[text,int]</span> = <span class="tok-fn">map</span>(<span class="tok-str">"alice"</span>, 10)</code></pre>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Collections Are Values</h3>
+          <p>
+            Collection values can be passed to functions and transformed by the collection APIs. Operations such as
+            <code>append</code> and <code>mapSet</code> operate on the collection value itself, while the compiler
+            continues to track its declared type.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">collections.vela</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-kw">let</span> numbers: <span class="tok-type">list[int]</span> = <span class="tok-fn">list</span>(1, 2)
+
+<span class="tok-fn">append</span>(numbers, 3)
+
+<span class="tok-kw">let</span> users: <span class="tok-type">map[text,int]</span> = <span class="tok-fn">map</span>(<span class="tok-str">"alice"</span>, 1)
+<span class="tok-fn">mapSet</span>(users, <span class="tok-str">"bob"</span>, 2)</code></pre>
+        </div>
+      </section>
+
+      <!-- ──────── FUNCTIONS ──────── -->
+      <section class="section" id="functions">
+        <div class="section-header">
+          <div class="section-eyebrow">06 — Language</div>
+          <h2>Functions</h2>
+          <p class="section-lead">
+            Functions are the primary unit of executable behavior in Vela. They have explicitly typed parameters and
+            return types, and function values can be stored, passed to other functions, and called dynamically.
+          </p>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Declaration</h3>
+          <p>
+            A function is declared with <code>fn</code>, followed by its name, typed parameters, and a return type. The
+            function body contains the expressions that implement its behavior.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">functions.vela</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-kw">fn</span> <span class="tok-fn">add</span>(a: <span class="tok-type">int</span>, b: <span class="tok-type">int</span>) -&gt; <span class="tok-type">int</span> {
+    <span class="tok-kw">return</span> a + b
+}
+
+<span class="tok-kw">let</span> result = <span class="tok-fn">add</span>(3, 4)
+
+<span class="tok-fn">print</span>(result)</code></pre>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Parameters &amp; Return Types</h3>
+          <p>
+            Parameter types and return types are part of a function's signature. The compiler checks calls against that
+            signature, including the number and types of supplied arguments.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">typed-functions.vela</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-kw">fn</span> <span class="tok-fn">isLongerThan</span>(value: <span class="tok-type">text</span>, limit: <span class="tok-type">int</span>) -&gt; <span class="tok-type">bool</span> {
+    <span class="tok-kw">return</span> <span class="tok-fn">length</span>(value) &gt; limit
+}</code></pre>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>First-Class Functions</h3>
+          <p>
+            Functions can be used as values. Vela represents a function value with a function type describing its
+            parameter types and return type.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">function-values.vela</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-kw">fn</span> <span class="tok-fn">double</span>(value: <span class="tok-type">int</span>) -&gt; <span class="tok-type">int</span> {
+    <span class="tok-kw">return</span> value * 2
+}
+
+<span class="tok-kw">let</span> operation: (<span class="tok-type">int</span>) -&gt; <span class="tok-type">int</span> = double
+
+<span class="tok-fn">print</span>(operation(5))</code></pre>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Higher-Order Functions</h3>
+          <p>
+            Because functions are values, they can be passed to other functions. This is the foundation for Vela's typed
+            collection algorithms such as <code>filter</code>, <code>map</code>, and <code>reduce</code>.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">higher-order.vela</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-kw">fn</span> <span class="tok-fn">isEven</span>(value: <span class="tok-type">int</span>) -&gt; <span class="tok-type">bool</span> {
+    <span class="tok-kw">return</span> value % 2 == 0
+}
+
+<span class="tok-kw">let</span> numbers: <span class="tok-type">list[int]</span> = <span class="tok-fn">list</span>(1, 2, 3, 4)
+
+<span class="tok-kw">let</span> evens = <span class="tok-fn">filter</span>(numbers, isEven)
+
+<span class="tok-fn">print</span>(<span class="tok-fn">length</span>(evens))</code></pre>
+        </div>
+      </section>
+
+      <!-- ──────── CONTROL FLOW ──────── -->
+      <section class="section" id="control-flow">
+        <div class="section-header">
+          <div class="section-eyebrow">07 — Language</div>
+          <h2>Control Flow</h2>
+          <p class="section-lead">
+            Vela keeps control flow deliberately small in its first public iteration, with conditional execution
+            providing the foundation for branching behavior.
+          </p>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Conditionals</h3>
+          <p>
+            Conditional branches use <code>if</code>, with optional <code>else if</code> and <code>else</code> branches.
+            Conditions are boolean expressions, so the compiler can check that a branch receives the appropriate value.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">conditionals.vela</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-kw">let</span> value: <span class="tok-type">int</span> = 10
+
+<span class="tok-kw">if</span> value &gt; 0 {
+    <span class="tok-fn">print</span>(<span class="tok-str">"positive"</span>)
+} <span class="tok-kw">else if</span> value &lt; 0 {
+    <span class="tok-fn">print</span>(<span class="tok-str">"negative"</span>)
+} <span class="tok-kw">else</span> {
+    <span class="tok-fn">print</span>(<span class="tok-str">"zero"</span>)
+}</code></pre>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Boolean Expressions</h3>
+          <p>
+            Comparisons and logical expressions produce <code>bool</code> values and can be used directly as conditions.
+            This keeps branching explicit while allowing conditions to be composed from ordinary expressions.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">conditions.vela</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-kw">let</span> age: <span class="tok-type">int</span> = 21
+<span class="tok-kw">let</span> verified: <span class="tok-type">bool</span> = <span class="tok-kw">true</span>
+
+<span class="tok-kw">if</span> age &gt;= 18 &amp;&amp; verified {
+    <span class="tok-fn">print</span>(<span class="tok-str">"access granted"</span>)
+}</code></pre>
+        </div>
+
+        <div class="callout">
+          <span class="callout-label">0.0.1</span>
+          Control-flow features will continue to grow with the language. This release keeps the documented surface
+          focused on the constructs currently established in the compiler.
+        </div>
+      </section>
+
+      <!-- ──────── ALGORITHMS ──────── -->
+      <section class="section" id="algorithms">
+        <div class="section-header">
+          <div class="section-eyebrow">08 — Libraries</div>
+          <h2>Data Algorithms</h2>
+          <p class="section-lead">
+            Vela's collection algorithms combine strong typing with first-class functions, giving common transformations
+            a compact syntax while leaving their input and output types visible to the compiler.
+          </p>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Map</h3>
+          <p>
+            <code>map</code> transforms every element of a list with a typed function. The output list may have a
+            different element type from the input.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">map.vela</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-kw">fn</span> <span class="tok-fn">double</span>(value: <span class="tok-type">int</span>) -&gt; <span class="tok-type">int</span> {
+    <span class="tok-kw">return</span> value * 2
+}
+
+<span class="tok-kw">let</span> numbers: <span class="tok-type">list[int]</span> = <span class="tok-fn">list</span>(1, 2, 3)
+<span class="tok-kw">let</span> doubled = <span class="tok-fn">map</span>(numbers, double)
+
+<span class="tok-fn">print</span>(<span class="tok-fn">get</span>(doubled, 1))</code></pre>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Filter</h3>
+          <p>
+            <code>filter</code> keeps the elements for which a typed predicate returns <code>true</code>. The element
+            type of the resulting list remains the same as the input.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">filter.vela</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-kw">fn</span> <span class="tok-fn">isEven</span>(value: <span class="tok-type">int</span>) -&gt; <span class="tok-type">bool</span> {
+    <span class="tok-kw">return</span> value % 2 == 0
+}
+
+<span class="tok-kw">let</span> numbers: <span class="tok-type">list[int]</span> = <span class="tok-fn">list</span>(1, 2, 3, 4)
+
+<span class="tok-kw">let</span> evens = <span class="tok-fn">filter</span>(numbers, isEven)
+
+<span class="tok-fn">print</span>(<span class="tok-fn">length</span>(evens))</code></pre>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Reduce</h3>
+          <p>
+            <code>reduce</code> folds a list into a single accumulator value. Its reducer receives the current
+            accumulator and the current element and returns the next accumulator.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">reduce.vela</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-kw">fn</span> <span class="tok-fn">add</span>(total: <span class="tok-type">int</span>, value: <span class="tok-type">int</span>) -&gt; <span class="tok-type">int</span> {
+    <span class="tok-kw">return</span> total + value
+}
+
+<span class="tok-kw">let</span> numbers: <span class="tok-type">list[int]</span> = <span class="tok-fn">list</span>(1, 2, 3, 4)
+
+<span class="tok-kw">let</span> total = <span class="tok-fn">reduce</span>(numbers, 0, add)
+
+<span class="tok-fn">print</span>(total)</code></pre>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Weave</h3>
+          <p>
+            <code>weave</code> is Vela's compiler-aware collection pipeline primitive. It expresses a sequence of
+            collection stages as one operation, allowing the compiler and runtime to execute compatible stages together
+            instead of requiring every intermediate collection to be materialized.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">weave.vela</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-kw">fn</span> <span class="tok-fn">isEven</span>(value: <span class="tok-type">int</span>) -&gt; <span class="tok-type">bool</span> {
+    <span class="tok-kw">return</span> value % 2 == 0
+}
+
+<span class="tok-kw">fn</span> <span class="tok-fn">double</span>(value: <span class="tok-type">int</span>) -&gt; <span class="tok-type">int</span> {
+    <span class="tok-kw">return</span> value * 2
+}
+
+<span class="tok-kw">fn</span> <span class="tok-fn">greaterThanFive</span>(value: <span class="tok-type">int</span>) -&gt; <span class="tok-type">bool</span> {
+    <span class="tok-kw">return</span> value &gt; 5
+}
+
+<span class="tok-kw">let</span> numbers: <span class="tok-type">list[int]</span> = <span class="tok-fn">list</span>(1, 2, 3, 4, 5, 6)
+
+<span class="tok-kw">let</span> result = <span class="tok-fn">weave</span>(
+    numbers,
+    <span class="tok-fn">filter</span>(isEven),
+    <span class="tok-fn">map</span>(double),
+    <span class="tok-fn">filter</span>(greaterThanFive)
+)</code></pre>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Early Termination</h3>
+          <p>
+            A final <code>find</code> stage can terminate a weave pipeline as soon as a matching value is produced. This
+            makes searches expressible without requiring a separate full traversal after the preceding stages.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">weave-find.vela</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-kw">fn</span> <span class="tok-fn">isEven</span>(value: <span class="tok-type">int</span>) -&gt; <span class="tok-type">bool</span> {
+    <span class="tok-kw">return</span> value % 2 == 0
+}
+
+<span class="tok-kw">let</span> numbers: <span class="tok-type">list[int]</span> = <span class="tok-fn">list</span>(1, 2, 3, 4, 5, 6)
+
+<span class="tok-kw">let</span> result = <span class="tok-fn">weave</span>(
+    numbers,
+    <span class="tok-fn">filter</span>(isEven),
+    <span class="tok-fn">find</span>(<span class="tok-fn">greaterThanFive</span>)
+)</code></pre>
+        </div>
+
+        <div class="callout">
+          <span class="callout-label">Vela</span>
+          Collection pipelines are not merely a convenience API. <code>weave()</code> gives the compiler a structured
+          representation of the programmer's intent, creating room for execution strategies that ordinary chained
+          collection calls cannot express as directly.
+        </div>
+      </section>
+
+      <!-- ──────── STDLIB ──────── -->
+      <section class="section" id="stdlib">
+        <div class="section-header">
+          <div class="section-eyebrow">09 — Libraries</div>
+          <h2>Standard Library</h2>
+          <p class="section-lead">
+            Vela 0.0.1 keeps its standard runtime deliberately focused. Core operations are exposed directly through
+            typed built-ins, with the compiler providing semantic checks before execution.
+          </p>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Input &amp; Output</h3>
+          <p>
+            <code>print</code> writes a value to standard output. <code>input</code> reads user input and can also be
+            parameterized with a Vela type to request structured typed values.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">input.vela</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-kw">let</span> name: <span class="tok-type">text</span> = <span class="tok-fn">input</span>()
+
+<span class="tok-fn">print</span>(name)</code></pre>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Secrets &amp; Passwords</h3>
+          <p>
+            Sensitive values have dedicated types and runtime operations rather than being treated as ordinary text.
+            Vela provides secure secret input together with password hashing and verification.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">secrets.vela</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-kw">let</span> password: <span class="tok-type">secret</span> = <span class="tok-fn">input</span>[<span class="tok-type">secret</span>]()
+<span class="tok-kw">let</span> hash: <span class="tok-type">secret_hash</span> = <span class="tok-fn">velaHash</span>(password)
+
+<span class="tok-kw">let</span> valid = <span class="tok-fn">velaVerify</span>(password, hash)</code></pre>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Collections</h3>
+          <p>
+            Collection construction and manipulation are available directly through typed built-ins. The compiler checks
+            the relationships between collection types and their arguments.
+          </p>
+        </div>
+
+        <div class="grid-2">
+          <div class="type-card">
+            <div class="type-card-name">Lists</div>
+            <div class="type-card-desc">Ordered collections with length, indexed access, append, membership, and
+              higher-order algorithms.</div>
+            <div class="type-card-code"><span class="tok-fn">list</span>(1, 2, 3)</div>
+          </div>
+
+          <div class="type-card">
+            <div class="type-card-name">Sets</div>
+            <div class="type-card-desc">Unique-value collections with hash-based membership checking.</div>
+            <div class="type-card-code"><span class="tok-fn">set</span>(1, 2, 2, 3)</div>
+          </div>
+
+          <div class="type-card">
+            <div class="type-card-name">Maps</div>
+            <div class="type-card-desc">Typed key-value collections with lookup, mutation, and membership operations.
+            </div>
+            <div class="type-card-code"><span class="tok-fn">map</span>(<span class="tok-str">"alice"</span>, 10)</div>
+          </div>
+
+          <div class="type-card">
+            <div class="type-card-name">Pipelines</div>
+            <div class="type-card-desc">Compiler-aware collection execution through <code>weave</code> and
+              early-terminating <code>find</code>.</div>
+            <div class="type-card-code"><span class="tok-fn">weave</span>(...)</div>
+          </div>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Money</h3>
+          <p>
+            The money runtime provides currency-aware monetary values, exact minor-unit storage, arithmetic, and
+            rounding behavior. Monetary operations preserve the currency relationship enforced by the compiler and
+            runtime.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">money.vela</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-kw">let</span> price = <span class="tok-fn">money</span>(<span class="tok-num">19.99</span>, <span class="tok-str">"EUR"</span>)</code></pre>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Permissions</h3>
+          <p>
+            Entity permissions are represented as part of Vela's domain model. A permission expression can be evaluated
+            with <code>can</code>, allowing authorization logic to remain connected to the entity definition.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">permissions.vela</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-kw">entity</span> <span class="tok-fn">Task</span> {
+    id: <span class="tok-type">int</span>
+    owner: User
+
+    permission edit = owner
+}
+
+<span class="tok-kw">let</span> allowed = <span class="tok-fn">can</span>(user, <span class="tok-str">"edit"</span>, task)</code></pre>
+        </div>
+
+        <div class="callout">
+          <span class="callout-label">0.0.1</span>
+          The runtime is intentionally compact in the first release. Additional libraries and integrations can grow
+          around the core language without forcing the initial standard library to become a large surface area.
+        </div>
+      </section>
+
+      <!-- ──────── EXAMPLES ──────── -->
+      <section class="section" id="examples">
+        <div class="section-header">
+          <div class="section-eyebrow">10 — Resources</div>
+          <h2>Examples</h2>
+          <p class="section-lead">
+            These examples demonstrate the ideas that make Vela distinct: explicit types, domain-aware entities, typed
+            input,
+            and compiler-aware collection processing.
+          </p>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Collection Pipeline</h3>
+          <p>
+            Vela's collection operations can be combined into a <code>weave</code> pipeline. The pipeline describes the
+            intended stages directly, allowing the compiler and runtime to execute compatible operations together
+            instead
+            of materializing every intermediate collection.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">collection_pipeline.vela</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-kw">fn</span> <span class="tok-fn">isEven</span>(value: <span class="tok-type">int</span>) -&gt; <span class="tok-type">bool</span> {
+    <span class="tok-kw">return</span> value % 2 == 0
+}
+
+<span class="tok-kw">fn</span> <span class="tok-fn">double</span>(value: <span class="tok-type">int</span>) -&gt; <span class="tok-type">int</span> {
+    <span class="tok-kw">return</span> value * 2
+}
+
+<span class="tok-kw">let</span> numbers: <span class="tok-type">list[int]</span> = <span class="tok-fn">list</span>(1, 2, 3, 4, 5, 6)
+
+<span class="tok-kw">let</span> result = <span class="tok-fn">weave</span>(
+    numbers,
+    <span class="tok-fn">filter</span>(isEven),
+    <span class="tok-fn">map</span>(double)
+)
+
+<span class="tok-fn">print</span>(result)</code></pre>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Entities &amp; Permissions</h3>
+          <p>
+            Entities allow application concepts to be represented directly in the language. Permissions can be declared
+            alongside the entity and evaluated with <code>can</code>, keeping authorization rules close to the data they
+            govern.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">permissions.vela</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-kw">entity</span> <span class="tok-fn">User</span> {
+    id: <span class="tok-type">int</span>
+}
+
+<span class="tok-kw">entity</span> <span class="tok-fn">Task</span> {
+    id: <span class="tok-type">int</span>
+    owner: User
+
+    permission edit = owner
+}
+
+<span class="tok-kw">let</span> allowed = <span class="tok-fn">can</span>(alice, <span class="tok-str">"edit"</span>, task)
+
+<span class="tok-fn">print</span>(allowed)</code></pre>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Typed Input</h3>
+          <p>
+            Input is not limited to raw text. Vela can request values using a type expression, allowing the runtime to
+            validate and construct structured values according to the requested type.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">typed_input.vela</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-kw">let</span> age: <span class="tok-type">int</span> = <span class="tok-fn">input</span>[<span class="tok-type">int</span>]()
+<span class="tok-kw">let</span> tags: <span class="tok-type">list[text]</span> = <span class="tok-fn">input</span>[<span class="tok-type">list[text]</span>]()
+<span class="tok-kw">let</span> choices: <span class="tok-type">set[int]</span> = <span class="tok-fn">input</span>[<span class="tok-type">set[int]</span>]()
+
+<span class="tok-fn">print</span>(age)
+<span class="tok-fn">print</span>(tags)
+<span class="tok-fn">print</span>(choices)</code></pre>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Secure Secret Input</h3>
+          <p>
+            Sensitive values have their own type. Requesting <code>secret</code> input uses the secure input path rather
+            than treating a password as ordinary text.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">secret_input.vela</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-kw">let</span> password: <span class="tok-type">secret</span> = <span class="tok-fn">input</span>[<span class="tok-type">secret</span>]()
+
+<span class="tok-fn">print</span>(<span class="tok-str">"Secret received."</span>)</code></pre>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Exact Money</h3>
+          <p>
+            Money is represented as a domain-specific value rather than an unstructured number. Currency is part of the
+            value, and monetary arithmetic is performed with exact decimal semantics.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">money.vela</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-kw">let</span> price = <span class="tok-fn">money</span>(<span class="tok-num">19.99</span>, <span class="tok-str">"EUR"</span>)
+<span class="tok-kw">let</span> quantity: <span class="tok-type">int</span> = 3
+
+<span class="tok-kw">let</span> total = price * quantity
+
+<span class="tok-fn">print</span>(total)</code></pre>
+        </div>
+      </section>
+
+      <!-- ──────── DOWNLOAD ──────── -->
+      <section class="section" id="download">
+        <div class="section-header">
+          <div class="section-eyebrow">11 — Resources</div>
+          <h2>Download</h2>
+          <p class="section-lead">
+            Vela v0.0.1 is the first public iteration of the language. This release is intended for experimentation,
+            evaluation, and early development while the language and compiler continue to evolve.
+          </p>
+          <div class="section-meta">
+            <span>Released · [Release date]</span>
+            <span>License · MIT</span>
+            <span>Tag · v0.0.1</span>
+          </div>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Prebuilt Binaries</h3>
+          <p>
+            Prebuilt release artifacts will be published for the supported platforms below. Each archive contains the
+            Vela compiler and the files required to use the v0.0.1 release. Verify the downloaded archive against its
+            SHA-256 checksum before installing or distributing it.
+          </p>
+        </div>
+
+        <div class="download-grid">
+          <div class="download-row">
+            <div class="download-platform">
+              <span class="download-platform-name">macOS</span>
+              <span class="download-platform-meta">Apple Silicon · arm64</span>
+            </div>
+            <span class="download-size">[Release size]</span>
+            <a href="#" class="download-link">
+              <span>Download</span>
+              <span>↓</span>
+            </a>
+          </div>
+
+          <div class="download-row">
+            <div class="download-platform">
+              <span class="download-platform-name">macOS</span>
+              <span class="download-platform-meta">Intel · x86_64</span>
+            </div>
+            <span class="download-size">[Release size]</span>
+            <a href="#" class="download-link">
+              <span>Download</span>
+              <span>↓</span>
+            </a>
+          </div>
+
+          <div class="download-row">
+            <div class="download-platform">
+              <span class="download-platform-name">Linux</span>
+              <span class="download-platform-meta">x86_64 · glibc</span>
+            </div>
+            <span class="download-size">[Release size]</span>
+            <a href="#" class="download-link">
+              <span>Download</span>
+              <span>↓</span>
+            </a>
+          </div>
+
+          <div class="download-row">
+            <div class="download-platform">
+              <span class="download-platform-name">Linux</span>
+              <span class="download-platform-meta">aarch64 · glibc</span>
+            </div>
+            <span class="download-size">[Release size]</span>
+            <a href="#" class="download-link">
+              <span>Download</span>
+              <span>↓</span>
+            </a>
+          </div>
+
+          <div class="download-row">
+            <div class="download-platform">
+              <span class="download-platform-name">Windows</span>
+              <span class="download-platform-meta">x86_64 · zip</span>
+            </div>
+            <span class="download-size">[Release size]</span>
+            <a href="#" class="download-link">
+              <span>Download</span>
+              <span>↓</span>
+            </a>
+          </div>
+
+          <div class="download-row">
+            <div class="download-platform">
+              <span class="download-platform-name">Source Code</span>
+              <span class="download-platform-meta">v0.0.1 source archive</span>
+            </div>
+            <span class="download-size">[Release size]</span>
+            <a href="#" class="download-link">
+              <span>Download</span>
+              <span>↓</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Checksums</h3>
+          <p>
+            SHA-256 checksums allow you to confirm that an archive matches the artifact published for the release. After
+            downloading a file, calculate its SHA-256 digest locally and compare it with the value published below.
+          </p>
+        </div>
+
+        <div class="checksum-block">
+          <div class="checksum-title">SHA-256 · v0.0.1</div>
+
+          <div class="checksum-line">
+            <span class="checksum-file">vela-0.0.1-darwin-arm64.tar.gz</span>
+            <span class="checksum-hash">[SHA-256 checksum]</span>
+          </div>
+
+          <div class="checksum-line">
+            <span class="checksum-file">vela-0.0.1-darwin-x86_64.tar.gz</span>
+            <span class="checksum-hash">[SHA-256 checksum]</span>
+          </div>
+
+          <div class="checksum-line">
+            <span class="checksum-file">vela-0.0.1-linux-x86_64.tar.gz</span>
+            <span class="checksum-hash">[SHA-256 checksum]</span>
+          </div>
+
+          <div class="checksum-line">
+            <span class="checksum-file">vela-0.0.1-linux-aarch64.tar.gz</span>
+            <span class="checksum-hash">[SHA-256 checksum]</span>
+          </div>
+
+          <div class="checksum-line">
+            <span class="checksum-file">vela-0.0.1-windows-x86_64.zip</span>
+            <span class="checksum-hash">[SHA-256 checksum]</span>
+          </div>
+
+          <div class="checksum-line">
+            <span class="checksum-file">vela-0.0.1-src.tar.gz</span>
+            <span class="checksum-hash">[SHA-256 checksum]</span>
+          </div>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Release Notes</h3>
+          <p>
+            Vela v0.0.1 is the first public iteration of the language and establishes the foundation for future
+            releases.
+            The release brings together the compiler, semantic type system, domain-aware values, collections, entities,
+            permissions, typed input, and compiler-aware collection pipelines.
+          </p>
+          <p>
+            The release includes exact decimal and money handling, secure secret input, password hashing and
+            verification,
+            typed lists, sets and maps, first-class functions, and the <code>weave</code> collection execution model.
+            Collection pipelines can express filtering, mapping, and finding in a form the compiler can analyze and
+            optimize.
+          </p>
+          <p>
+            Vela is intentionally evolving. APIs, syntax, compiler behavior, and runtime capabilities may change as the
+            language moves beyond the 0.0.1 foundation.
+          </p>
+        </div>
+
+        <div class="callout">
+          <span class="callout-label">0.0.1</span>
+          This is an early public release. Expect the language to evolve rapidly as new iterations build on the
+          foundations
+          established here. Report bugs, unexpected compiler behavior, and documentation issues through the project's
+          GitHub repository.
+        </div>
+      </section>
+
+      <!-- ──────── CONTRIBUTING ──────── -->
+      <section class="section" id="contributing">
+        <div class="section-header">
+          <div class="section-eyebrow">12 — Resources</div>
+          <h2>Contributing</h2>
+          <p class="section-lead">
+            Vela is an evolving language and compiler project, and contributions are welcome. Bug reports, language
+            experiments, compiler improvements, documentation updates, and new examples all help shape future
+            iterations.
+          </p>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Getting the Source</h3>
+          <p>
+            Vela is developed as a TypeScript compiler project. Start by cloning the repository, installing its
+            dependencies,
+            and checking that the compiler project passes its type check.
+          </p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-filename">terminal</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code><span class="tok-fn">git</span> clone &lt;repository-url&gt;
+<span class="tok-fn">cd</span> vela
+<span class="tok-fn">npm</span> install
+<span class="tok-fn">npm</span> run typecheck</code></pre>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>Development Workflow</h3>
+          <p>
+            Contributions should follow the existing project structure and preserve the compiler's semantic guarantees.
+            When changing language behavior, update the relevant compiler logic and add or adjust tests so the new
+            behavior
+            can be verified before it becomes part of a release.
+          </p>
+
+          <ol class="list">
+            <li>Fork or clone the repository and create a branch for your change.</li>
+            <li>Make the smallest focused change that solves the problem or adds the intended feature.</li>
+            <li>Add or update tests for compiler, semantic, runtime, or language behavior affected by the change.</li>
+            <li>Run the project's type check and relevant tests before submitting the change.</li>
+            <li>Open a pull request describing what changed, why it changed, and any language or compiler behavior
+              affected.</li>
+          </ol>
+
+          <h3><span class="anchor">§</span>Reporting Issues</h3>
+          <p>
+            When reporting a bug, include the smallest Vela source example that reproduces the problem, the compiler
+            output
+            or runtime error, and the behavior you expected. For compiler issues, also include the relevant command used
+            to
+            reproduce the problem.
+          </p>
+
+          <h3><span class="anchor">§</span>Language Changes</h3>
+          <p>
+            Changes to Vela's syntax, type system, runtime behavior, or compiler semantics should be considered
+            carefully
+            because the language is intentionally evolving between iterations. Explain the intended behavior clearly and
+            keep the implementation, tests, and documentation aligned.
+          </p>
+
+          <h3><span class="anchor">§</span>Code of Conduct</h3>
+          <p>
+            Contributions should be respectful, constructive, and focused on improving Vela. A formal Code of Conduct
+            can
+            be added to the repository as the project's community guidelines develop.
+          </p>
+        </div>
+
+        <div class="callout">
+          <span class="callout-label">Vela</span>
+          Vela is being built iteratively. A good contribution does not have to be large — a clearer diagnostic, a
+          better
+          test, a documentation fix, or a small compiler improvement can make the next iteration stronger.
+        </div>
+      </section>
+
+      <!-- ──────── LICENSE ──────── -->
+      <section class="section" id="license">
+        <div class="section-header">
+          <div class="section-eyebrow">13 — Resources</div>
+          <h2>License</h2>
+          <p class="section-lead">
+            Vela is open-source software released under the MIT License. The license permits use, modification, and
+            distribution of the software, including for commercial purposes, subject to the terms of the license.
+          </p>
+        </div>
+
+        <div class="prose">
+          <h3><span class="anchor">§</span>License Summary</h3>
+          <p>
+            The MIT License is a permissive open-source license. You may use Vela privately or commercially, modify the
+            source code, redistribute the software, and publish derivative works.
+          </p>
+
+          <ul class="list">
+            <li>Use the software for private or commercial purposes.</li>
+            <li>Modify the source code and create derivative works.</li>
+            <li>Copy and redistribute the software.</li>
+            <li>Sublicense or sell copies of the software.</li>
+          </ul>
+
+          <p>
+            When distributing the software or substantial portions of it, the original copyright notice and license
+            notice
+            must remain included. The software is provided without warranty; see the full license text below for the
+            complete terms.
+          </p>
+
+          <h3><span class="anchor">§</span>Full License Text</h3>
+          <p>
+            The following is the license that applies to Vela. The copyright year and holder should match the
+            information
+            used in the repository's <code>LICENSE</code> file.
+          </p>
+        </div>
+
+        <div class="license-block">
+          MIT License
+
+          Copyright (c) [2026] [ANONYMOUS BOI]
+
+          Permission is hereby granted, free of charge, to any person obtaining a copy
+          of this software and associated documentation files (the "Software"), to deal
+          in the Software without restriction, including without limitation the rights
+          to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+          copies of the Software, and to permit persons to whom the Software is
+          furnished to do so, subject to the following conditions:
+
+          The above copyright notice and this permission notice shall be included in all
+          copies or substantial portions of the Software.
+
+          THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+          IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+          FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+          AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+          LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+          OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+          SOFTWARE.
+        </div>
+
+        <div class="callout">
+          <span class="callout-label">MIT</span>
+          The full license is included in the Vela repository as <code>LICENSE</code>. The repository version is the
+          authoritative source for the current license text and copyright information.
+        </div>
+      </section>
+
+      <nav class="prev-next">
+        <a href="#contributing" class="prev-next-item">
+          <div class="prev-next-label">← Previous</div>
+          <div class="prev-next-title">Contributing</div>
+        </a>
+        <a href="#top" class="prev-next-item">
+          <div class="prev-next-label">Next →</div>
+          <div class="prev-next-title">Back to top</div>
+        </a>
+      </nav>
+
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <a href="#top" class="brand">
+          <span class="brand-mark"></span>
+          <span>VELA</span>
+        </a>
+        <p>
+          Vela is an open-source programming language, released under the MIT License and built to evolve openly with
+          its community.
+        </p>
+      </div>
+      <div class="footer-col">
+        <h5>Documentation</h5>
+        <ul>
+          <li><a href="#introduction">Introduction</a></li>
+          <li><a href="#data-types">Data Types</a></li>
+          <li><a href="#functions">Functions</a></li>
+          <li><a href="#algorithms">Algorithms</a></li>
+          <li><a href="#stdlib">Standard Library</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Community</h5>
+        <ul>
+          <li><a href="#">GitHub</a></li>
+          <li><a href="#">Discussions</a></li>
+          <li><a href="#">Issue Tracker</a></li>
+          <li><a href="#contributing">Contributing</a></li>
+          <li><a href="#">Code of Conduct</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Project</h5>
+        <ul>
+          <li><a href="#download">Download</a></li>
+          <li><a href="#">Changelog</a></li>
+          <li><a href="#">Roadmap</a></li>
+          <li><a href="#license">License</a></li>
+          <li><a href="#">Releases</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© [year] Vela Language Project · MIT Licensed</span>
+      <span>v0.0.1 · Built with care</span>
+    </div>
+  </footer>
+
+  <button class="back-to-top" id="backToTop" aria-label="Back to top">↑</button>
+
+  <script>
+    (function () {
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      const heroEls = document.querySelectorAll('[data-anim]');
+      heroEls.forEach((el, i) => {
+        const delay = parseInt(el.dataset.delay || (i * 120));
+        if (reduceMotion) {
+          el.classList.add('is-in');
+          return;
+        }
+        setTimeout(() => el.classList.add('is-in'), 100 + delay);
+      });
+
+      const sections = document.querySelectorAll('.section');
+      const sectionObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-in');
+          }
+        });
+      }, { threshold: 0.08, rootMargin: '0px 0px -10% 0px' });
+
+      sections.forEach((s) => sectionObserver.observe(s));
+
+      const sidebarLinks = document.querySelectorAll('.sidebar-link');
+      const navLinks = document.querySelectorAll('.nav-links a[href^="#"]');
+
+      const spyObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const id = entry.target.id;
+            sidebarLinks.forEach((l) => l.classList.toggle('active', l.getAttribute('href') === '#' + id));
+            navLinks.forEach((l) => l.classList.toggle('active', l.getAttribute('href') === '#' + id));
+          }
+        });
+      }, { rootMargin: '-30% 0px -60% 0px' });
+
+      sections.forEach((s) => spyObserver.observe(s));
+
+      document.querySelectorAll('.copy-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const block = btn.closest('.code-block');
+          if (!block) return;
+          const code = block.querySelector('pre code');
+          if (!code) return;
+          const text = code.innerText;
+          const original = btn.textContent;
+          const writeClipboard = (data) => {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              return navigator.clipboard.writeText(data);
+            }
+            return new Promise((resolve, reject) => {
+              const ta = document.createElement('textarea');
+              ta.value = data;
+              ta.style.position = 'fixed';
+              ta.style.opacity = '0';
+              document.body.appendChild(ta);
+              ta.select();
+              try { document.execCommand('copy'); resolve(); } catch (e) { reject(e); }
+              document.body.removeChild(ta);
+            });
+          };
+          writeClipboard(text).then(() => {
+            btn.textContent = 'Copied';
+            btn.classList.add('copied');
+            setTimeout(() => {
+              btn.textContent = original;
+              btn.classList.remove('copied');
+            }, 1600);
+          }).catch(() => {
+            btn.textContent = 'Press Ctrl+C';
+            setTimeout(() => { btn.textContent = original; }, 1800);
+          });
+        });
+      });
+
+      const backToTop = document.getElementById('backToTop');
+      window.addEventListener('scroll', () => {
+        if (window.scrollY > 600) {
+          backToTop.classList.add('visible');
+        } else {
+          backToTop.classList.remove('visible');
+        }
+      }, { passive: true });
+      backToTop.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+      });
+
+      const menuToggle = document.getElementById('menuToggle');
+      const sidebar = document.getElementById('sidebar');
+      if (menuToggle && sidebar) {
+        menuToggle.addEventListener('click', () => {
+          sidebar.classList.toggle('open');
+        });
+        sidebar.querySelectorAll('a').forEach((a) => {
+          a.addEventListener('click', () => sidebar.classList.remove('open'));
+        });
+      }
+
+      document.querySelectorAll('a[href^="#"]').forEach((link) => {
+        link.addEventListener('click', (e) => {
+          const href = link.getAttribute('href');
+          if (href === '#' || href.length < 2) return;
+          const target = document.querySelector(href);
+          if (target) {
+            e.preventDefault();
+            const top = target.getBoundingClientRect().top + window.scrollY - 80;
+            window.scrollTo({ top, behavior: reduceMotion ? 'auto' : 'smooth' });
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+
+</html>
