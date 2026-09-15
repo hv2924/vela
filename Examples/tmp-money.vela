@@ -1,0 +1,6 @@
+let eur : money = money(10, "EUR")
+let result : money = eur * 2
+let split : money = result / 2
+print(result)
+print(split)
+ 

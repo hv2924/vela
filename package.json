@@ -1,0 +1,23 @@
+{
+  "name": "vela-programming-language",
+  "version": "0.1.0",
+  "description": "The Vela programming language, compiler, and tooling.",
+  "main": "compiler/main.ts",
+  "scripts": {
+  "vela": "tsc && tsx compiler/main.ts",
+  "typecheck": "tsc --noEmit"
+},
+  "keywords": [
+    "vela",
+    "programming-language",
+    "compiler"
+  ],
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/node": "^22.20.2",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2"
+  }
+}
