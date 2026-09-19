@@ -1,0 +1,76 @@
+entity User {
+    id: int
+    email: email
+    name: text
+}
+
+fn idGreaterThanOne(user: User) -> bool {
+    return user.id > 1
+}
+
+fn findBob(user: User) -> bool {
+    return user.name == "Bob"
+}
+
+fn getUserName(user: User) -> text {
+    return user.name
+}
+
+fn isUserOverOne(user: User) -> bool {
+    return user.id > 1
+}
+
+fn getName(user: User) -> text {
+    return user.name
+}
+
+create(User {
+    id: 1
+    email: email("alice@example.com")
+    name: "Alice"
+})
+
+create(User {
+    id: 2
+    email: email("bob@example.com")
+    name: "Bob"
+})
+
+create(User {
+    id: 3
+    email: email("charlie@example.com")
+    name: "Charlie"
+})
+
+let users = list(User)
+
+print(users)
+
+let filtered = filter(
+    users,
+    idGreaterThanOne
+)
+
+print(filtered)
+
+let names = map(
+    users,
+    getUserName
+)
+
+print(names)
+
+let bob = find(
+    users,
+    findBob
+)
+
+print(bob)
+
+let wovenNames = weave(
+    users,
+    filter(isUserOverOne),
+    map(getName)
+)
+
+print(wovenNames)

@@ -1,4 +1,4 @@
-fn secret(a : int) -> int {
+fn product(a : int) -> int {
   return a * 2
 }
 

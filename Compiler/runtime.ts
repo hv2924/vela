@@ -19,6 +19,15 @@ export interface VelaMoney {
   currency: string;
 }
 
+export interface VelaRecord {
+  [key: string]: unknown;
+}
+
+const velaStore = new Map<
+  string,
+  VelaRecord[]
+>();
+
 export async function velaWeave<T, U>(
   list: T[],
   stages: Array<
@@ -57,17 +66,138 @@ export async function velaWeave<T, U>(
   return result;
 }
 
+export async function velaFind<T>(
+  list: T[],
+  predicate: (
+    value: T,
+  ) => boolean | PromiseLike<boolean>,
+): Promise<T> {
+  for (const value of list) {
+    if (await predicate(value)) {
+      return value;
+    }
+  }
+
+  throw new Error(
+    "Vela: find() did not find a matching value.",
+  );
+}
+
+export function velaCreate<T extends VelaRecord>(
+  entityName: string,
+  value: T,
+): T {
+  const records = velaStore.get(entityName) ?? [];
+
+  const existing = records.find(
+    (record) => record.id === value.id,
+  );
+
+  if (existing !== undefined) {
+    throw new Error(
+      `Vela: ${entityName} with id "${String(value.id)}" already exists.`,
+    );
+  }
+
+  records.push(value);
+  velaStore.set(entityName, records);
+
+  return value;
+}
+
+export function velaRead<T extends VelaRecord>(
+  entityName: string,
+  id: unknown,
+): T {
+  const records = velaStore.get(entityName) ?? [];
+
+  const record = records.find(
+    (value) => value.id === id,
+  );
+
+  if (record === undefined) {
+    throw new Error(
+      `Vela: ${entityName} with id "${String(id)}" was not found.`,
+    );
+  }
+
+  return record as T;
+}
+
+export function velaList<T extends VelaRecord>(
+  entityName: string,
+): T[] {
+  const records = velaStore.get(entityName) ?? [];
+
+  return [...records] as T[];
+}
+
+export function velaUpdate<T extends VelaRecord>(
+  entityName: string,
+  id: unknown,
+  entity: T,
+): T {
+  const records = velaStore.get(entityName) ?? [];
+
+  const index = records.findIndex(
+    (value) => value.id === id,
+  );
+
+  if (index === -1) {
+    throw new Error(
+      `Vela: ${entityName} with id "${String(id)}" was not found.`,
+    );
+  }
+
+  if (
+    entity.id !== undefined &&
+    entity.id !== id
+  ) {
+    throw new Error(
+      `Vela: ${entityName} update id "${String(entity.id)}" does not match target id "${String(id)}".`,
+    );
+  }
+
+  records[index] = {
+    ...records[index],
+    ...entity,
+  };
+
+  return records[index] as T;
+}
+
+export function velaDelete<T extends VelaRecord>(
+  entityName: string,
+  id: unknown,
+): T {
+  const records = velaStore.get(entityName) ?? [];
+
+  const index = records.findIndex(
+    (value) => value.id === id,
+  );
+
+  if (index === -1) {
+    throw new Error(
+      `Vela: ${entityName} with id "${String(id)}" was not found.`,
+    );
+  }
+
+  const deleted = records.splice(index, 1)[0]!;
+
+  return deleted as T;
+}
+
 export async function velaWeaveFind<T, U>(
   list: T[],
   stages: Array<
     | {
-        kind: "filter";
-        fn: (value: unknown) => boolean | PromiseLike<boolean>;
-      }
+      kind: "filter";
+      fn: (value: unknown) => boolean | PromiseLike<boolean>;
+    }
     | {
-        kind: "map";
-        fn: (value: unknown) => unknown | PromiseLike<unknown>;
-      }
+      kind: "map";
+      fn: (value: unknown) => unknown | PromiseLike<unknown>;
+    }
   >,
   predicate: (value: U) => boolean | PromiseLike<boolean>,
 ): Promise<U> {

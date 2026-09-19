@@ -724,6 +724,349 @@ function inferExpressionType(
                     currentType,
                 );
             }
+            if (calleeName === "create") {
+                if (expression.arguments.length !== 1) {
+                    diagnostics.add(
+                        "VELA-630",
+                        `create() expects 1 argument, received ${expression.arguments.length}.`,
+                        "error",
+                        expression.location,
+                    );
+
+                    return "error";
+                }
+
+                const entityConstruction = expression.arguments[0]!;
+
+                if (entityConstruction.type !== "EntityConstructionExpression") {
+                    diagnostics.add(
+                        "VELA-631",
+                        "create() expects an entity construction.",
+                        "error",
+                        entityConstruction.location,
+                    );
+
+                    return "error";
+                }
+
+                const entityType = inferExpressionType(
+                    entityConstruction,
+                    symbols,
+                    functions,
+                    entities,
+                    diagnostics,
+                );
+
+                if (entityType === "error") {
+                    return "error";
+                }
+
+                return resolveExpressionType(
+                    expression,
+                    entityType,
+                );
+            }
+            if (calleeName === "update") {
+                if (expression.arguments.length !== 3) {
+                    diagnostics.add(
+                        "VELA-636",
+                        `update() expects 3 arguments, received ${expression.arguments.length}.`,
+                        "error",
+                        expression.location,
+                    );
+
+                    return "error";
+                }
+
+                const entityArgument = expression.arguments[0]!;
+
+                if (
+                    entityArgument.type !== "IdentifierExpression"
+                ) {
+                    diagnostics.add(
+                        "VELA-637",
+                        "update() expects an entity name as its first argument.",
+                        "error",
+                        entityArgument.location,
+                    );
+
+                    return "error";
+                }
+
+                const entity = entities.get(
+                    entityArgument.name,
+                );
+
+                if (entity === undefined) {
+                    diagnostics.add(
+                        "VELA-402",
+                        `Entity "${entityArgument.name}" is not defined.`,
+                        "error",
+                        entityArgument.location,
+                    );
+
+                    return "error";
+                }
+
+                const idField = entity.fields.get("id");
+
+                if (idField === undefined) {
+                    diagnostics.add(
+                        "VELA-638",
+                        `Entity "${entity.name}" does not have an "id" field.`,
+                        "error",
+                        entityArgument.location,
+                    );
+
+                    return "error";
+                }
+
+                const idArgument = expression.arguments[1]!;
+
+                const actualIdType = inferExpressionType(
+                    idArgument,
+                    symbols,
+                    functions,
+                    entities,
+                    diagnostics,
+                );
+
+                if (
+                    actualIdType !== "error" &&
+                    !sameType(actualIdType, idField.type)
+                ) {
+                    diagnostics.add(
+                        "VELA-639",
+                        `update() expects an "${displayType(idField.type)}" id for entity "${entity.name}", received "${displayType(actualIdType)}".`,
+                        "error",
+                        idArgument.location,
+                    );
+
+                    return "error";
+                }
+
+                const entityValue = expression.arguments[2]!;
+
+                if (
+                    entityValue.type !== "EntityConstructionExpression"
+                ) {
+                    diagnostics.add(
+                        "VELA-640",
+                        `update() expects a "${entity.name}" value as its third argument.`,
+                        "error",
+                        entityValue.location,
+                    );
+
+                    return "error";
+                }
+
+                const entityValueType = analyzeEntityUpdate(
+                    entityValue,
+                    entity,
+                    symbols,
+                    functions,
+                    entities,
+                    diagnostics,
+                );
+
+                const expectedEntityType: TypeName = {
+                    kind: "entity",
+                    name: entity.name,
+                };
+
+                if (
+                    entityValueType !== "error" &&
+                    !sameType(entityValueType, expectedEntityType)
+                ) {
+                    diagnostics.add(
+                        "VELA-640",
+                        `update() expects a "${entity.name}" value as its third argument.`,
+                        "error",
+                        entityValue.location,
+                    );
+
+                    return "error";
+                }
+
+                return resolveExpressionType(
+                    expression,
+                    expectedEntityType,
+                );
+            }
+            if (calleeName === "delete") {
+                if (expression.arguments.length !== 2) {
+                    diagnostics.add(
+                        "VELA-641",
+                        `delete() expects 2 arguments, received ${expression.arguments.length}.`,
+                        "error",
+                        expression.location,
+                    );
+
+                    return "error";
+                }
+
+                const entityArgument = expression.arguments[0]!;
+
+                if (
+                    entityArgument.type !== "IdentifierExpression"
+                ) {
+                    diagnostics.add(
+                        "VELA-642",
+                        "delete() expects an entity name as its first argument.",
+                        "error",
+                        entityArgument.location,
+                    );
+
+                    return "error";
+                }
+
+                const entity = entities.get(
+                    entityArgument.name,
+                );
+
+                if (entity === undefined) {
+                    diagnostics.add(
+                        "VELA-402",
+                        `Entity "${entityArgument.name}" is not defined.`,
+                        "error",
+                        entityArgument.location,
+                    );
+
+                    return "error";
+                }
+
+                const idField = entity.fields.get("id");
+
+                if (idField === undefined) {
+                    diagnostics.add(
+                        "VELA-643",
+                        `Entity "${entity.name}" does not have an "id" field.`,
+                        "error",
+                        entityArgument.location,
+                    );
+
+                    return "error";
+                }
+
+                const idArgument = expression.arguments[1]!;
+
+                const actualIdType = inferExpressionType(
+                    idArgument,
+                    symbols,
+                    functions,
+                    entities,
+                    diagnostics,
+                );
+
+                if (
+                    actualIdType !== "error" &&
+                    !sameType(actualIdType, idField.type)
+                ) {
+                    diagnostics.add(
+                        "VELA-644",
+                        `delete() expects an "${displayType(idField.type)}" id for entity "${entity.name}", received "${displayType(actualIdType)}".`,
+                        "error",
+                        idArgument.location,
+                    );
+
+                    return "error";
+                }
+
+                return resolveExpressionType(
+                    expression,
+                    {
+                        kind: "entity",
+                        name: entity.name,
+                    },
+                );
+            }
+            if (calleeName === "read") {
+                if (expression.arguments.length !== 2) {
+                    diagnostics.add(
+                        "VELA-632",
+                        `read() expects 2 arguments, received ${expression.arguments.length}.`,
+                        "error",
+                        expression.location,
+                    );
+
+                    return "error";
+                }
+
+                const entityArgument = expression.arguments[0]!;
+
+                if (
+                    entityArgument.type !== "IdentifierExpression"
+                ) {
+                    diagnostics.add(
+                        "VELA-633",
+                        "read() expects an entity name as its first argument.",
+                        "error",
+                        entityArgument.location,
+                    );
+
+                    return "error";
+                }
+
+                const entity = entities.get(
+                    entityArgument.name,
+                );
+
+                if (entity === undefined) {
+                    diagnostics.add(
+                        "VELA-402",
+                        `Entity "${entityArgument.name}" is not defined.`,
+                        "error",
+                        entityArgument.location,
+                    );
+
+                    return "error";
+                }
+
+                const idField = entity.fields.get("id");
+
+                if (idField === undefined) {
+                    diagnostics.add(
+                        "VELA-634",
+                        `Entity "${entity.name}" does not have an "id" field.`,
+                        "error",
+                        entityArgument.location,
+                    );
+
+                    return "error";
+                }
+
+                const idArgument = expression.arguments[1]!;
+
+                const actualIdType = inferExpressionType(
+                    idArgument,
+                    symbols,
+                    functions,
+                    entities,
+                    diagnostics,
+                );
+
+                if (
+                    actualIdType !== "error" &&
+                    !sameType(actualIdType, idField.type)
+                ) {
+                    diagnostics.add(
+                        "VELA-635",
+                        `read() expects an "${displayType(idField.type)}" id for entity "${entity.name}", received "${displayType(actualIdType)}".`,
+                        "error",
+                        idArgument.location,
+                    );
+
+                    return "error";
+                }
+
+                return resolveExpressionType(
+                    expression,
+                    {
+                        kind: "entity",
+                        name: entity.name,
+                    },
+                );
+            }
 
             if (
                 expression.callee.type === "IdentifierExpression" &&
@@ -1125,6 +1468,116 @@ function inferExpressionType(
                 return resolveExpressionType(
                     expression,
                     listType,
+                );
+            }
+
+            if (calleeName === "find") {
+                if (expression.arguments.length !== 2) {
+                    diagnostics.add(
+                        "VELA-585",
+                        `find() expects 2 arguments, received ${expression.arguments.length}.`,
+                        "error",
+                        expression.location,
+                    );
+
+                    return "error";
+                }
+
+                const listType = inferExpressionType(
+                    expression.arguments[0]!,
+                    symbols,
+                    functions,
+                    entities,
+                    diagnostics,
+                );
+
+                const predicateType = inferExpressionType(
+                    expression.arguments[1]!,
+                    symbols,
+                    functions,
+                    entities,
+                    diagnostics,
+                );
+
+                if (
+                    listType === "error" ||
+                    predicateType === "error"
+                ) {
+                    return "error";
+                }
+
+                if (!isListType(listType)) {
+                    diagnostics.add(
+                        "VELA-586",
+                        `find() expects a list as its first argument, received "${formatTypeName(listType)}".`,
+                        "error",
+                        expression.arguments[0]!.location,
+                    );
+
+                    return "error";
+                }
+
+                if (
+                    typeof predicateType === "string" ||
+                    predicateType.kind !== "function"
+                ) {
+                    diagnostics.add(
+                        "VELA-587",
+                        `find() expects a function predicate, received "${formatTypeName(predicateType)}".`,
+                        "error",
+                        expression.arguments[1]!.location,
+                    );
+
+                    return "error";
+                }
+
+                if (predicateType.parameters.length !== 1) {
+                    diagnostics.add(
+                        "VELA-588",
+                        "find() predicate must accept exactly 1 argument.",
+                        "error",
+                        expression.arguments[1]!.location,
+                    );
+
+                    return "error";
+                }
+
+                if (
+                    !sameType(
+                        predicateType.parameters[0]!,
+                        listType.elementType,
+                    )
+                ) {
+                    diagnostics.add(
+                        "VELA-589",
+                        `find() predicate expects "${formatTypeName(
+                            predicateType.parameters[0]!,
+                        )}" but the list contains "${formatTypeName(
+                            listType.elementType,
+                        )}".`,
+                        "error",
+                        expression.arguments[1]!.location,
+                    );
+
+                    return "error";
+                }
+
+                if (predicateType.returnType !== "bool") {
+                    diagnostics.add(
+                        "VELA-590",
+                        `find() predicate must return bool, received "${formatTypeName(
+                            predicateType.returnType,
+                        )}".`,
+                        "error",
+                        expression.arguments[1]!.location,
+                    );
+
+                    return "error";
+                }
+
+                return resolveExpressionType(
+                    expression,
+                    listType.elementType,
                 );
             }
             if (calleeName === "map") {
@@ -1732,6 +2185,25 @@ function inferExpressionType(
                 );
             }
             if (calleeName === "list") {
+                if (
+                    expression.arguments.length === 1 &&
+                    expression.arguments[0]!.type === "IdentifierExpression" &&
+                    entities.has(expression.arguments[0]!.name)
+                ) {
+                    const entityName =
+                        expression.arguments[0]!.name;
+
+                    return resolveExpressionType(
+                        expression,
+                        {
+                            kind: "list",
+                            elementType: {
+                                kind: "entity",
+                                name: entityName,
+                            },
+                        },
+                    );
+                }
                 if (expression.arguments.length === 0) {
                     diagnostics.add(
                         "VELA-550",
@@ -2776,6 +3248,71 @@ function analyzeEntityConstruction(
     for (const [name, definition] of entity.fields) {
         if (!definition.hasDefault && !seen.has(name)) {
             diagnostics.add("VELA-406", `Required field "${name}" is missing from "${entity.name}".`, "error", expression.location);
+        }
+    }
+
+    return resolveExpressionType(
+        expression,
+        {
+            kind: "entity",
+            name: entity.name,
+        },
+    );
+}
+
+function analyzeEntityUpdate(
+    expression: EntityConstructionExpression,
+    entity: EntitySymbol,
+    symbols: Symbols,
+    functions: Functions,
+    entities: Entities,
+    diagnostics: DiagnosticBag,
+): ResolvedType {
+    const seen = new Set<string>();
+
+    for (const field of expression.fields) {
+        if (seen.has(field.name)) {
+            diagnostics.add(
+                "VELA-403",
+                `Field "${field.name}" is specified more than once.`,
+                "error",
+                field.location,
+            );
+            continue;
+        }
+
+        seen.add(field.name);
+
+        const definition = entity.fields.get(field.name);
+
+        if (definition === undefined) {
+            diagnostics.add(
+                "VELA-404",
+                `Entity "${entity.name}" has no field named "${field.name}".`,
+                "error",
+                field.location,
+            );
+            continue;
+        }
+
+        const actual = inferExpressionType(
+            field.value,
+            symbols,
+            functions,
+            entities,
+            diagnostics,
+        );
+
+        if (
+            actual !== "error" &&
+            !sameType(actual, definition.type)
+        ) {
+            diagnostics.add(
+                "VELA-405",
+                `Field "${field.name}" of "${entity.name}" expects "${displayType(definition.type)}", received "${displayType(actual)}".`,
+                "error",
+                field.location,
+            );
         }
     }
 

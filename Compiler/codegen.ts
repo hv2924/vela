@@ -22,7 +22,7 @@ export function generate(
   );
 
   return [
-    `const { velaHash, velaVerify, velaCan, velaMoney, velaMoneyAdd, velaMoneyToString, velaMoneyConvert, velaMoneySubtract, velaMoneyMultiply, velaMoneyDivide, velaDecimal, velaDecimalAdd, velaDecimalSubtract, velaDecimalToString, velaDecimalMultiply, velaDecimalDivide, velaDecimalRound, velaListGet, velaListAppend, velaListContains, velaSet, velaSetContains, velaMap, velaMapGet, velaMapSet, velaMapContains, velaListFilter, velaListMap, velaListReduce, velaListFilterMap, velaListFilterMapReduce, velaListPipeline, velaInput, velaInputListInt, velaInputSetInt, velaInputMapTextInt, velaInputTyped, velaInputSecret, velaWeave, velaWeaveFind } = require("./Compiler/runtime.js");`,
+    `const { velaHash, velaVerify, velaCan, velaMoney, velaMoneyAdd, velaMoneyToString, velaMoneyConvert, velaMoneySubtract, velaMoneyMultiply, velaMoneyDivide, velaDecimal, velaDecimalAdd, velaDecimalSubtract, velaDecimalToString, velaDecimalMultiply, velaDecimalDivide, velaDecimalRound, velaListGet, velaListAppend, velaListContains, velaSet, velaSetContains, velaMap, velaMapGet, velaMapSet, velaMapContains, velaListFilter, velaListMap, velaListReduce, velaListFilterMap, velaListFilterMapReduce, velaListPipeline, velaInput, velaInputListInt, velaInputSetInt, velaInputMapTextInt, velaInputTyped, velaInputSecret, velaWeave, velaWeaveFind, velaCreate, velaRead, velaUpdate, velaDelete, velaList, velaFind } = require("./Compiler/runtime.js");`,
     "",
     "(async () => {",
     ...generatedStatements.map((statement) => `  ${statement.replace(/\n/g, "\n  ")}`),
@@ -591,6 +591,18 @@ function generateExpression(
             entities,
           )}))`;
         }
+        if (calleeName === "find") {
+          return `(await velaFind(
+    ${generateExpression(
+            expression.arguments[0]!,
+            entities,
+          )},
+    ${generateExpression(
+            expression.arguments[1]!,
+            entities,
+          )}
+  ))`;
+        }
         if (calleeName === "mapContains") {
           return `velaMapContains(${expression.arguments
             .map((argument) =>
@@ -682,6 +694,16 @@ function generateExpression(
             .join(", ")})`;
         }
         if (calleeName === "list") {
+          if (
+            expression.arguments.length === 1 &&
+            expression.arguments[0]!.type === "IdentifierExpression" &&
+            entities.has(expression.arguments[0]!.name)
+          ) {
+            return `(await velaList(
+      ${JSON.stringify(expression.arguments[0]!.name)}
+    ))`;
+          }
+
           return `[${expression.arguments
             .map((argument) =>
               generateExpression(argument, entities),
@@ -783,6 +805,69 @@ function generateExpression(
 
         if (calleeName === "serialize") {
           return `JSON.stringify(${argumentsCode})`;
+        }
+        if (calleeName === "create") {
+          return `(await velaCreate(
+    ${JSON.stringify(
+            (
+              expression.arguments[0] as Extract<
+                Expression,
+                { type: "EntityConstructionExpression" }
+              >
+            ).entityName,
+          )},
+    ${generateExpression(
+            expression.arguments[0]!,
+            entities,
+          )}
+  ))`;
+        }
+        if (calleeName === "read") {
+          const entityArgument = expression.arguments[0]!;
+
+          if (entityArgument.type !== "IdentifierExpression") {
+            throw new Error(
+              "Code generation error: read() entity argument must be an identifier.",
+            );
+          }
+
+          return `(await velaRead(
+    ${JSON.stringify(entityArgument.name)},
+    ${generateExpression(
+            expression.arguments[1]!,
+            entities,
+          )}
+  ))`;
+        }
+        if (calleeName === "update") {
+          const entityName =
+            expression.arguments[0]!.type === "IdentifierExpression"
+              ? expression.arguments[0]!.name
+              : "Unknown";
+
+          return `(await velaUpdate(${JSON.stringify(
+            entityName,
+          )}, ${generateExpression(
+            expression.arguments[1]!,
+            entities,
+          )}, ${generateExpression(
+            expression.arguments[2]!,
+            entities,
+          )}))`;
+        }
+        if (calleeName === "delete") {
+          const entityName =
+            expression.arguments[0]!.type === "IdentifierExpression"
+              ? expression.arguments[0]!.name
+              : "Unknown";
+
+          return `(await velaDelete(
+    ${JSON.stringify(entityName)},
+    ${generateExpression(
+            expression.arguments[1]!,
+            entities,
+          )}
+  ))`;
         }
 
         return `(await ${generateExpression(expression.callee, entities)}(${argumentsCode}))`;
